@@ -3,8 +3,11 @@ package com.wjy.shortlink.admin.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.wjy.shortlink.admin.common.convention.result.Result;
 import com.wjy.shortlink.admin.common.convention.result.Results;
+import com.wjy.shortlink.admin.dto.req.UserLoginReqDTO;
 import com.wjy.shortlink.admin.dto.req.UserRegisterReqDto;
+import com.wjy.shortlink.admin.dto.req.UserUpdateReqDto;
 import com.wjy.shortlink.admin.dto.resp.UserActualRespDTO;
+import com.wjy.shortlink.admin.dto.resp.UserLoginRespDTO;
 import com.wjy.shortlink.admin.dto.resp.UserRespDTO;
 import com.wjy.shortlink.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +58,24 @@ public class UserController {
         //System.out.println(requestParam);
         userService.register(requestParam);
         return Results.success();
+    }
+
+    @PutMapping("/api/short-link/v1/user")
+    public Result<Void> update(@RequestBody UserUpdateReqDto userUpdateReqDto){
+        userService.update(userUpdateReqDto);
+        return Results.success();
+    }
+
+    @PostMapping("/api/short-link/v1/user/login")
+    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO userLoginReqDTO){
+        UserLoginRespDTO login = userService.login(userLoginReqDTO);
+        return Results.success(login);
+    }
+
+
+    @GetMapping("/api/short-link/v1/user/check-login")
+    public Result<Boolean> checkLogin(@RequestParam("username")String username,@RequestParam("token")String token){
+
+        return Results.success(userService.checkLogin(username,token));
     }
 }
