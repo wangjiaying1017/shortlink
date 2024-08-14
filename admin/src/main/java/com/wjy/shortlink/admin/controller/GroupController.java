@@ -3,6 +3,7 @@ package com.wjy.shortlink.admin.controller;
 import com.wjy.shortlink.admin.common.convention.result.Result;
 import com.wjy.shortlink.admin.common.convention.result.Results;
 import com.wjy.shortlink.admin.dto.req.ShortLinkGroupSaveReqDTO;
+import com.wjy.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import com.wjy.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import com.wjy.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
 import com.wjy.shortlink.admin.service.GroupService;
@@ -43,5 +44,10 @@ public class GroupController {
         return Results.success();
     }
 
+    @PostMapping("/api/short-link/v1/group/sort")
+    public Result<Void> sortGroup(@RequestBody List<ShortLinkGroupSortReqDTO> requestParam){
+        groupService.sortGroup(requestParam);
+        return Results.success();
+    }
 
 }
