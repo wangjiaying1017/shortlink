@@ -39,6 +39,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
                 .name(groupName)
                 .username(UserContext.getUsername())
                 .gid(gid)
+                .sortOrder(0)
                 .build();
 
 
