@@ -1,4 +1,4 @@
-package com.wjy.shortlink.admin.remote.dto.req;
+package com.wjy.shortlink.project.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.Date;
 * 短链接创建请求对象
 * */
 @Data
-public class ShortLinkCreateReqDTO {
+public class ShortLinkUpdateReqDTO {
     /**
      * 域名
      */
@@ -22,18 +22,17 @@ public class ShortLinkCreateReqDTO {
      */
     private String originUrl;
 
+    /*
+    完整短链接
+     */
 
+    private String fullShortUrl;
 
     /**
      * 分组标识
      */
     private String gid;
 
-
-    /**
-     * 创建类型 0：接口创建 1：控制台创建
-     */
-    private int createdType;
 
     /**
      * 有效期类型 0：永久有效 1：自定义
