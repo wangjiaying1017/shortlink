@@ -21,6 +21,17 @@ import java.util.Map;
 * 短链接中台远程调用服务
 * */
 public interface ShortLinkRemoteService {
+
+    /*
+    根据url获取短链接标题
+     */
+    default Result<String> getTitleByUrl(String url){
+        String result = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/title?url="+url);
+        return JSON.parseObject(result, new TypeReference<>() {
+        });
+    }
+
+
     /*
     * 创建短链接
     * */
