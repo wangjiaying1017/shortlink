@@ -23,6 +23,7 @@ import com.wjy.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.wjy.shortlink.project.service.ShortLinkService;
 import com.wjy.shortlink.project.toolkit.HashUtil;
+import com.wjy.shortlink.project.toolkit.LinkUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +37,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-import static com.wjy.shortlink.project.common.constants.RedisKeyConstant.GOTO_SHORT_LINK_KEY;
-import static com.wjy.shortlink.project.common.constants.RedisKeyConstant.LOCK_GOTO_SHORT_LINK_KEY;
+import static com.wjy.shortlink.project.common.constants.RedisKeyConstant.*;
 
 @Slf4j
 @Service
@@ -87,6 +89,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             }
 
         }
+        stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY,fullShortUrl),
+                requestParam.getOriginUrl(),
+                LinkUtil.getLinkCacheValidDate(requestParam.getValidDate()),
+                TimeUnit.MILLISECONDS);
         //一个短链接后缀在多个域名内可用
         shortLinkCreateCachePenetrationBloomFilter.add(fullShortUrl);
 
@@ -140,6 +146,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     * 修改短链接
     * */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateShortLink(ShortLinkUpdateReqDTO requestParam) {
         LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
                 .eq(ShortLinkDO::getGid, requestParam.getGid())
@@ -199,36 +206,53 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             response.sendRedirect(originalLink);
             return;
         }
-            RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
-            lock.lock();;
-            try{
-                originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
-                if(StrUtil.isNotBlank(originalLink)){
-                    response.sendRedirect(originalLink);
-                    return;
-                }
-                LambdaQueryWrapper<ShortLinkGotoDO> shortLinkGotoWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class);
-                shortLinkGotoWrapper.eq(ShortLinkGotoDO::getFullShortUrl,fullShortUrl);
-                ShortLinkGotoDO hasShortLinkGotoDO = shortLinkGotoMapper.selectOne(shortLinkGotoWrapper);
-                if(hasShortLinkGotoDO == null){
-                    return;
-                }
-                LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
-                        .eq(ShortLinkDO::getGid, hasShortLinkGotoDO.getGid())
-                        .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
-                        .eq(ShortLinkDO::getDelFlag, 0)
-                        .eq(ShortLinkDO::getEnableStatus, 0);
+        boolean contains = shortLinkCreateCachePenetrationBloomFilter.contains(fullShortUrl);
+        if(!contains){
 
-                ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-                if(shortLinkDO!=null){
-                    stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY,fullShortUrl),shortLinkDO.getOriginUrl());
-                    response.sendRedirect(shortLinkDO.getOriginUrl());
-            }
-
-            }finally {
-                lock.unlock();
-            }
+            return;
         }
+        String gotoISNullShortLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl));
+        if(StrUtil.isNotBlank(gotoISNullShortLink)){
+            return;
+        }
+        RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
+        lock.lock();;
+        try{
+            originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
+            if(StrUtil.isNotBlank(originalLink)){
+                response.sendRedirect(originalLink);
+                return;
+            }
+            LambdaQueryWrapper<ShortLinkGotoDO> shortLinkGotoWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class);
+            shortLinkGotoWrapper.eq(ShortLinkGotoDO::getFullShortUrl,fullShortUrl);
+            ShortLinkGotoDO hasShortLinkGotoDO = shortLinkGotoMapper.selectOne(shortLinkGotoWrapper);
+            if(hasShortLinkGotoDO == null){
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY,fullShortUrl),"-",30, TimeUnit.MINUTES);
+                return;
+            }
+            LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                    .eq(ShortLinkDO::getGid, hasShortLinkGotoDO.getGid())
+                    .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
+                    .eq(ShortLinkDO::getDelFlag, 0)
+                    .eq(ShortLinkDO::getEnableStatus, 0);
+
+            ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+            if(shortLinkDO!=null){
+                if(shortLinkDO.getValidDate()!=null && shortLinkDO.getValidDate().before(new Date())){
+                    stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY,fullShortUrl),"-",30, TimeUnit.MINUTES);
+                    return;
+                }
+                stringRedisTemplate.opsForValue().set(String.format(GOTO_SHORT_LINK_KEY,fullShortUrl),
+                        shortLinkDO.getOriginUrl(),
+                        LinkUtil.getLinkCacheValidDate(shortLinkDO.getValidDate()),
+                        TimeUnit.MILLISECONDS);
+                response.sendRedirect(shortLinkDO.getOriginUrl());
+            }
+
+        }finally {
+            lock.unlock();
+        }
+    }
 
 
         //通过布隆过滤器判断当前短链接是否存在
