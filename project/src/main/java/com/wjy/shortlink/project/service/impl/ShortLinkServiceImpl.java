@@ -11,6 +11,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wjy.shortlink.project.common.convention.exception.ServiceException;
 import com.wjy.shortlink.project.common.enums.ValiDateTypeEnum;
 import com.wjy.shortlink.project.dao.entity.ShortLinkDO;
+import com.wjy.shortlink.project.dao.entity.ShortLinkGotoDO;
+import com.wjy.shortlink.project.dao.mapper.ShortLinkGotoMapper;
 import com.wjy.shortlink.project.dao.mapper.ShortLinkMapper;
 import com.wjy.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkPageReqDTO;
@@ -20,11 +22,15 @@ import com.wjy.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.wjy.shortlink.project.service.ShortLinkService;
 import com.wjy.shortlink.project.toolkit.HashUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -37,11 +43,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private final RBloomFilter shortLinkCreateCachePenetrationBloomFilter;
 
+    private final ShortLinkGotoMapper shortLinkGotoMapper;
 /*
 * 创建短链接
 *
 * */
     @Override
+    @Transactional
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
         String suffix = generateSuffix(requestParam);
         String fullShortUrl = StrBuilder.create(requestParam.getDomain()).append("/").append(suffix).toString();
@@ -49,8 +57,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         shortLinkDO.setShortUri(suffix);
         shortLinkDO.setEnableStatus(0);
         shortLinkDO.setFullShortUrl(fullShortUrl);
+        ShortLinkGotoDO linkGotoDO = ShortLinkGotoDO.builder()
+                .fullShortUrl(fullShortUrl)
+                .gid(requestParam.getGid())
+                .build();
         try {
             baseMapper.insert(shortLinkDO);
+            shortLinkGotoMapper.insert(linkGotoDO);
         }catch(DuplicateKeyException e){
             //TODO 已经误判的短链接如何处理
             //1.短链接确实真实存在缓存
@@ -63,10 +76,11 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             }
 
         }
-        shortLinkCreateCachePenetrationBloomFilter.add(suffix);
+        //一个短链接后缀在多个域名内可用
+        shortLinkCreateCachePenetrationBloomFilter.add(fullShortUrl);
 
         return ShortLinkCreateRespDTO.builder()
-                .fullShortUrl(shortLinkDO.getFullShortUrl())
+                .fullShortUrl("http://"+shortLinkDO.getFullShortUrl())
                 .originUrl(requestParam.getOriginUrl())
                 .gid(requestParam.getGid())
                 .build();
@@ -84,7 +98,15 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .eq(ShortLinkDO::getEnableStatus,0)
                 .orderByDesc(ShortLinkDO::getCreateTime);
         IPage<ShortLinkDO> resultPage = baseMapper.selectPage(requestParam, queryWrapper);
-        IPage<ShortLinkPageRespDTO> shortLinkPageRespDTOs = resultPage.convert(each -> BeanUtil.toBean(each, ShortLinkPageRespDTO.class));
+        IPage<ShortLinkPageRespDTO> shortLinkPageRespDTOs = resultPage.convert(
+                each -> {
+                    ShortLinkPageRespDTO result = BeanUtil.toBean(each, ShortLinkPageRespDTO.class);
+                    result.setDomain("http://"+result.getDomain());
+                    return result;
+                }
+
+        );
+
         return shortLinkPageRespDTOs;
     }
 
@@ -152,18 +174,49 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
     }
 
+    /*
+    * 短链接跳转
+    * */
+    @SneakyThrows
+    @Override
+    public void restoreUrl(String shortUri, HttpServletRequest request, HttpServletResponse response) {
+        String serverName = request.getServerName();
+        String fullShortUrl = serverName+"/"+shortUri;
+        LambdaQueryWrapper<ShortLinkGotoDO> shortLinkGotoWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class);
+        shortLinkGotoWrapper.eq(ShortLinkGotoDO::getFullShortUrl,fullShortUrl);
+        ShortLinkGotoDO hasShortLinkGotoDO = shortLinkGotoMapper.selectOne(shortLinkGotoWrapper);
+        if(hasShortLinkGotoDO == null){
+            return;
+        }
+        LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                .eq(ShortLinkDO::getGid, hasShortLinkGotoDO.getGid())
+                .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
+                .eq(ShortLinkDO::getDelFlag, 0)
+                .eq(ShortLinkDO::getEnableStatus, 0);
+
+        ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+        if(shortLinkDO!=null){
+            response.sendRedirect(shortLinkDO.getOriginUrl());
+        }
+        //通过布隆过滤器判断当前短链接是否存在
+        /*if(shortLinkCreateCachePenetrationBloomFilter.contains(fullShortUrl)){
+
+        }*/
+    }
+
     private String generateSuffix(ShortLinkCreateReqDTO requestParam){
 
        int customGenerateCount = 0;
        String shortUri;
-       while(true){
+        String domain = requestParam.getDomain();
+        while(true){
            if(customGenerateCount > 10){
                throw  new ServiceException("短链接频繁生成，请稍后再试");
            }
            String originUrl = requestParam.getOriginUrl();
            originUrl+=System.currentTimeMillis();
            shortUri = HashUtil.hashToBase62(originUrl);
-           if(!shortLinkCreateCachePenetrationBloomFilter.contains(shortUri)){
+           if(!shortLinkCreateCachePenetrationBloomFilter.contains(domain+"/"+shortUri)){
                break;
            }
            customGenerateCount++;

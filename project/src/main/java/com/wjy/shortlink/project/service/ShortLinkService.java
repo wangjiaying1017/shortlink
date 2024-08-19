@@ -9,6 +9,8 @@ import com.wjy.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkCountQueryRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -38,4 +40,10 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     *
     * */
     void updateShortLink(ShortLinkUpdateReqDTO requestParam);
+
+    /*
+    * 短链接跳转
+    *
+    * */
+    void restoreUrl(String shortUri, HttpServletRequest request, HttpServletResponse response);
 }
