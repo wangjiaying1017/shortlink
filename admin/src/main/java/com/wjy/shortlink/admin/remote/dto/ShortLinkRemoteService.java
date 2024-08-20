@@ -73,14 +73,6 @@ public interface ShortLinkRemoteService {
 
 
     default Result<Void> updateShortLink(ShortLinkUpdateReqDTO requestParam){
-       /* Map<String,Object> requestMap = new HashMap<>();
-        requestMap.put("domain",requestParam.getDomain());
-        requestMap.put("originUrl",requestParam.getOriginUrl());
-        requestMap.put("fullShortUrl",requestParam.getFullShortUrl());
-        requestMap.put("gid",requestParam.getGid());
-        requestMap.put("validDateType",requestParam.getValidDateType());
-        requestMap.put("validDate",requestParam.getValidDate());
-        requestMap.put("describe",requestParam.getDescribe());*/
         String result = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/update", JSON.toJSONString(requestParam));
         return JSON.parseObject(result, new TypeReference<>() {
         });
@@ -93,4 +85,15 @@ public interface ShortLinkRemoteService {
         });
     }
 
+    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBin(ShortLinkPageReqDTO requestParam){
+        Map<String,Object> requestMap = new HashMap<>();
+
+        requestMap.put("gid",requestParam.getGid());
+        requestMap.put("current",requestParam.getCurrent());
+        requestMap.put("size",requestParam.getSize());
+        String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/page", requestMap);
+
+        return JSON.parseObject(resultPageStr, new TypeReference<>() {
+        });
+    }
 }
