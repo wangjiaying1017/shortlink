@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wjy.shortlink.project.dao.entity.ShortLinkDO;
 import com.wjy.shortlink.project.dao.mapper.ShortLinkMapper;
 import com.wjy.shortlink.project.dto.req.RecycleBinSaveReqDTO;
-import com.wjy.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import com.wjy.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.wjy.shortlink.project.service.RecycleBinService;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +41,14 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
         stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
     }
 
+    /*
+    * 分页短链接数据
+    *
+    * */
     @Override
-    public IPage<ShortLinkPageRespDTO> pageRecycleBin(ShortLinkPageReqDTO requestParam) {
+    public IPage<ShortLinkPageRespDTO> pageRecycleBin(ShortLinkRecycleBinPageReqDTO requestParam) {
         LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class);
-        queryWrapper.eq(ShortLinkDO::getGid,requestParam.getGid())
+        queryWrapper.in(ShortLinkDO::getGid,requestParam.getGidList())
                 .eq(ShortLinkDO::getDelFlag,0)
                 .eq(ShortLinkDO::getEnableStatus,1)
                 .orderByDesc(ShortLinkDO::getCreateTime);
