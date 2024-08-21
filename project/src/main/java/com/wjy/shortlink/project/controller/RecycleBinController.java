@@ -27,7 +27,7 @@ public class RecycleBinController {
 
     /**
      * 新增回收站
-     * @param requestParam
+     * @param requestParam 新增回收站请求参数
      * @return
      */
     @PostMapping("/api/short-link/v1/recycle-bin/save")
@@ -38,7 +38,7 @@ public class RecycleBinController {
 
     /**
      * 分页查询回收站数据
-     * @param requestParam
+     * @param requestParam 分页查询回收站数据请求参数
      * @return
      */
     @GetMapping("/api/short-link/v1/recycle-bin/page")
@@ -49,7 +49,7 @@ public class RecycleBinController {
 
     /**
      * 恢复回收站数据
-     * @param requestParam
+     * @param requestParam 恢复回收站数据请求参数
      * @return
      */
     @PostMapping("/api/short-link/v1/recycle-bin/recover")
@@ -58,6 +58,11 @@ public class RecycleBinController {
         return Results.success();
     }
 
+    /**
+     * 删除回收站数据
+     * @param requestParam 删除回收站数据请求参数
+     * @return
+     */
     @PostMapping("/api/short-link/v1/recycle-bin/remove")
     public Result<Void> removeRecycleBin(@RequestBody RecycleBinRemoveReqDTO requestParam){
         recycleBinService.removeRecycleBin(requestParam);
