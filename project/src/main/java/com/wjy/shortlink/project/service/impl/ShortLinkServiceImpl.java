@@ -18,14 +18,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wjy.shortlink.project.common.convention.exception.ServiceException;
 import com.wjy.shortlink.project.common.enums.ValiDateTypeEnum;
-import com.wjy.shortlink.project.dao.entity.LinkAccessStatsDO;
-import com.wjy.shortlink.project.dao.entity.LinkLocaleStatsDO;
-import com.wjy.shortlink.project.dao.entity.ShortLinkDO;
-import com.wjy.shortlink.project.dao.entity.ShortLinkGotoDO;
-import com.wjy.shortlink.project.dao.mapper.LinkAccessStatsMapper;
-import com.wjy.shortlink.project.dao.mapper.LinkLocaleStatsMapper;
-import com.wjy.shortlink.project.dao.mapper.ShortLinkGotoMapper;
-import com.wjy.shortlink.project.dao.mapper.ShortLinkMapper;
+import com.wjy.shortlink.project.dao.entity.*;
+import com.wjy.shortlink.project.dao.mapper.*;
 import com.wjy.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
@@ -81,6 +75,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private String shortlinkStatsLocaleAmapKey;
 
     private final LinkLocaleStatsMapper linkLocaleStatsMapper;
+
+    private final LinkOsStatsMapper linkOsStatsMapper;
+
+    private final LinkBrowserStatsMapper linkBrowserStatsMapper;
 
     /*
 * 创建短链接
@@ -362,6 +360,23 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .build();
                 linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDO);
             }
+            LinkOsStatsDO linkOsStatsDO = LinkOsStatsDO.builder()
+                    .fullShortUrl(fullShortUrl)
+                    .gid(gid)
+                    .cnt(1)
+                    .date(new Date())
+                    .os(LinkUtil.getOs(request))
+                    .build();
+            linkOsStatsMapper.shortLinkStats(linkOsStatsDO);
+
+            LinkBrowserStatsDO linkBrowserStatsDO = LinkBrowserStatsDO.builder()
+                    .fullShortUrl(fullShortUrl)
+                    .gid(gid)
+                    .browser(LinkUtil.getBrowser(request))
+                    .cnt(1)
+                    .date(new Date())
+                    .build();
+            linkBrowserStatsMapper.shortLinkStats(linkBrowserStatsDO);
 
         }catch (Throwable ex){
             log.error("短链接访问量统计异常:{}",ex);
