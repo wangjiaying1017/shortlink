@@ -33,7 +33,7 @@ public class LinkLocaleStatsDO extends BaseDO {
     /**
      * 分组标识
      */
-   /* private String gid;*/
+    private String gid;
 
     /**
      * 日期

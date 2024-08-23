@@ -366,6 +366,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                         .country("中国")
                         .fullShortUrl(fullShortUrl)
                         .date(new Date())
+                         .gid(gid)
                         .build();
                 linkLocaleStatsMapper.shortLinkLocaleState(linkLocaleStatsDO);
             }
