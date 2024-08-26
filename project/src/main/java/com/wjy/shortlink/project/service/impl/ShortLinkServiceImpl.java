@@ -355,13 +355,15 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             JSONObject jsonObject = JSON.parseObject(localResult);
             String infoCode = jsonObject.getString("infocode");
             LinkLocaleStatsDO linkLocaleStatsDO;
+            String actualProvice = null;
+            String actualCity = null;
             if(StrUtil.isNotBlank(infoCode) && StrUtil.equals(infoCode,"10000")){
                 String province = jsonObject.getString("province");
                 boolean unknownFlag = StrUtil.equals(province, "[]");
                  linkLocaleStatsDO = LinkLocaleStatsDO.builder()
-                        .province(unknownFlag ? "未知" : province)
+                        .province(actualProvice = unknownFlag ? "未知" : province)
                         .adcode(unknownFlag ? "未知" : jsonObject.getString("adcode"))
-                        .city(unknownFlag ? "未知" : jsonObject.getString("city"))
+                        .city(actualCity = unknownFlag ? "未知" : jsonObject.getString("city"))
                         .cnt(1)
                         .country("中国")
                         .fullShortUrl(fullShortUrl)
@@ -393,6 +395,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .ip(remoteAddr)
                     .fullShortUrl(fullShortUrl)
                     .os(os)
+                    .device(LinkUtil.getDevice(request))
+                    .network(LinkUtil.getNetwork(request))
+                    .locale("中国"+actualProvice+actualCity)
                     .browser(browser)
                     .gid(gid)
                     .user((String) uv.get())

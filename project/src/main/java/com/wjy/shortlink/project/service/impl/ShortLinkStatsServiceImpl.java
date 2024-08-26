@@ -139,6 +139,7 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         uvTypeStats.add(oldUser);
 
         //设备类型统计
+
         List<LinkDeviceStatsDO> linkDeviceStatsDOS = linkDeviceStatsMapper.listDeviceStatsByShortLink(requestParam);
         List<ShortLinkStatsDeviceRespDTO> shortLinkStatsDeviceRespDTOS = new ArrayList<>();
         int deviceCntSum = linkDeviceStatsDOS.stream()
