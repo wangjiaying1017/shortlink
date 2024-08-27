@@ -6,10 +6,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.admin.common.convention.result.Result;
 import com.wjy.shortlink.admin.remote.dto.req.*;
-import com.wjy.shortlink.admin.remote.dto.resp.ShortLinkCountQueryRespDTO;
-import com.wjy.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
-import com.wjy.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
-import com.wjy.shortlink.admin.remote.dto.resp.ShortLinkStatsRespDTO;
+import com.wjy.shortlink.admin.remote.dto.resp.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -124,6 +121,21 @@ public interface ShortLinkRemoteService {
         requestMap.put("startDate",requestParam.getStartDate());
         requestMap.put("endDate",requestParam.getEndDate());
         String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats",requestMap);
+        return JSON.parseObject(resultPageStr, new TypeReference<>() {
+        });
+    }
+
+
+    default Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsReqDTO requestParam){
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("gid",requestParam.getGid());
+        requestMap.put("fullShortUrl",requestParam.getFullShortUrl());
+        requestMap.put("startDate",requestParam.getStartDate());
+        requestMap.put("endDate",requestParam.getEndDate());
+        requestMap.put("current",requestParam.getCurrent());
+        requestMap.put("size",requestParam.getSize());
+
+        String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record",requestMap);
         return JSON.parseObject(resultPageStr, new TypeReference<>() {
         });
     }

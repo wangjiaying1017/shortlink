@@ -1,6 +1,8 @@
 package com.wjy.shortlink.project.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
+import com.wjy.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsRespDTO;
 
 /**
@@ -13,4 +15,11 @@ public interface ShortLinkStatsService {
      * @return 短链接监控数据
      */
     ShortLinkStatsRespDTO oneShortLinkStats(ShortLinkStatsReqDTO requestParam);
+
+    /**
+     * 分组获取短链接访问日志
+     * @param requestParam
+     * @return
+     */
+    IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsReqDTO requestParam);
 }
