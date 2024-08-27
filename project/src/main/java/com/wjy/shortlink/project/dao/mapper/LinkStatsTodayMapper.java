@@ -1,6 +1,9 @@
 package com.wjy.shortlink.project.dao.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.project.dao.entity.LinkStatsTodayDO;
+import com.wjy.shortlink.project.dao.entity.ShortLinkDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -17,4 +20,7 @@ public interface LinkStatsTodayMapper {
 
     )
     void statsToday(@Param("linkStatsToday")LinkStatsTodayDO linkStatsTodayDO);
+
+
+
 }
