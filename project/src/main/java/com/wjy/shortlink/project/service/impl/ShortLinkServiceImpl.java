@@ -87,6 +87,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private final LinkNetworkMapper linkNetworkMapper;
 
+    private final LinkStatsTodayMapper linkStatsTodayMapper;
+
     /*
 * 创建短链接
 *
@@ -426,6 +428,17 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             linkNetworkMapper.shortLinkNetworkState(linkNetworkStatsDO);
 
             baseMapper.increateStats(1,uvFirstFlag.get()?1:0,uipFirstFlag?1:0,gid,fullShortUrl);
+
+            LinkStatsTodayDO linkStatsTodayDO = LinkStatsTodayDO.builder()
+                    .fullShortUrl(fullShortUrl)
+                    .gid(gid)
+                    .date(new Date())
+                    .todayPv(1)
+                    .todayUv(uvFirstFlag.get()?1:0)
+                    .todayIpCount(uipFirstFlag?1:0)
+                    .build();
+
+            linkStatsTodayMapper.statsToday(linkStatsTodayDO);
 
         }catch (Throwable ex){
             log.error("短链接访问量统计异常:{}",ex);
