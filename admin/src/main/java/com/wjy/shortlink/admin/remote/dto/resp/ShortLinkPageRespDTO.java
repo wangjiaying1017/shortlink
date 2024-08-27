@@ -72,4 +72,34 @@ public class ShortLinkPageRespDTO {
 
     @TableField("`describe`")
     private String describe;
+
+    /**
+     * 历史Pv
+     */
+    private Integer totalPv;
+
+    /**
+     * 今日Pv
+     */
+    private Integer todayPv;
+
+    /**
+     * 历史Uv
+     */
+    private Integer totalUv;
+
+    /**
+     * 今日Uv
+     */
+    private Integer todayUv;
+
+    /**
+     * 历史ip
+     */
+    private Integer totalUip;
+
+    /**
+     * 今日ip
+     */
+    private Integer todayUip;
 }

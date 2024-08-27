@@ -100,6 +100,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         shortLinkDO.setShortUri(suffix);
         shortLinkDO.setEnableStatus(0);
         shortLinkDO.setFullShortUrl(fullShortUrl);
+        shortLinkDO.setTotalPv(0);
+        shortLinkDO.setTotalUv(1);
+        shortLinkDO.setTotalUip(0);
         shortLinkDO.setFavicon(getFavicon(requestParam.getOriginUrl()));
         ShortLinkGotoDO linkGotoDO = ShortLinkGotoDO.builder()
                 .fullShortUrl(fullShortUrl)
@@ -421,6 +424,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .cnt(1)
                     .build();
             linkNetworkMapper.shortLinkNetworkState(linkNetworkStatsDO);
+
+            baseMapper.increateStats(1,uvFirstFlag.get()?1:0,uipFirstFlag?1:0,gid,fullShortUrl);
 
         }catch (Throwable ex){
             log.error("短链接访问量统计异常:{}",ex);
