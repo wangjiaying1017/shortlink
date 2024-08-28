@@ -36,4 +36,16 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
             "AND full_short_url = #{param.fullShortUrl}\n" +
             "GROUP BY full_short_url,gid,province\n")
     List<ShortLinkStatsLocaleCNRespDTO> shortLinkLocaleStatByProvince(@Param("param")ShortLinkStatsReqDTO requestParam);
+
+    /**
+     * 分组获取指定链接的地区分组
+     * @param requestParam
+     * @return
+     */
+    @Select("SELECT province as locale,sum(cnt) as cnt\n" +
+            "FROM t_link_locale_stats\n" +
+            "WHERE date BETWEEN #{param.startDate} and #{param.endDate}\n" +
+            "AND gid = #{param.gid}\n" +
+            "GROUP BY gid,province\n")
+    List<ShortLinkStatsLocaleCNRespDTO> groupShortLinkLocaleStatByProvince(@Param("param")ShortLinkStatsReqDTO requestParam);
 }

@@ -23,4 +23,6 @@ public interface ShortLinkStatsService {
      * @return
      */
     IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsAccessReqDTO requestParam);
+
+    ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkStatsReqDTO requestParam);
 }

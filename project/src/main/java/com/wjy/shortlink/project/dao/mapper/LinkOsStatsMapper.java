@@ -37,4 +37,20 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
             "GROUP BY " +
             "    full_short_url, gid, date, os;")
     List<HashMap<String, Object>> listOsStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+
+    /**
+     * 分组获取指定日期内操作系统监控数据
+     */
+    @Select("SELECT " +
+            "    os, " +
+            "    SUM(cnt) AS count " +
+            "FROM " +
+            "    t_link_os_stats " +
+            "WHERE " +
+            "    gid = #{param.gid} " +
+            "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
+            "GROUP BY " +
+            "     gid, date, os;")
+    List<HashMap<String, Object>> groupListOsStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 }

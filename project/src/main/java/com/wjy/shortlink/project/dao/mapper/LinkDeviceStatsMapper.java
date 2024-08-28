@@ -35,4 +35,20 @@ public interface LinkDeviceStatsMapper {
             "GROUP BY " +
             "    full_short_url, gid, device;")
     List<LinkDeviceStatsDO> listDeviceStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+
+    /**
+     * 分组获取指定日期内访问设备监控数据
+     */
+    @Select("SELECT " +
+            "    device, " +
+            "    SUM(cnt) AS cnt " +
+            "FROM " +
+            "    t_link_device_stats " +
+            "WHERE " +
+            "    gid = #{param.gid} " +
+            "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
+            "GROUP BY " +
+            "   gid, device;")
+    List<LinkDeviceStatsDO> groupListDeviceStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 }

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.admin.common.convention.result.Result;
 import com.wjy.shortlink.admin.remote.dto.req.*;
 import com.wjy.shortlink.admin.remote.dto.resp.*;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.HashMap;
 import java.util.List;
@@ -137,6 +138,18 @@ public interface ShortLinkRemoteService {
         requestMap.put("size",requestParam.getSize());
 
         String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/access-record",requestMap);
+        return JSON.parseObject(resultPageStr, new TypeReference<>() {
+        });
+    }
+
+    @GetMapping("/api/short-link/v1/stats/group")
+   default Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkStatsReqDTO requestParam){
+        Map<String,Object> requestMap = new HashMap<>();
+        requestMap.put("gid",requestParam.getGid());
+        requestMap.put("startDate",requestParam.getStartDate());
+        requestMap.put("endDate",requestParam.getEndDate());
+
+        String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/stats/group",requestMap);
         return JSON.parseObject(resultPageStr, new TypeReference<>() {
         });
     }

@@ -35,6 +35,17 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             "GROUP BY full_short_url,gid,date")
     List<ShortLinkStatsAccessDailyRespDTO> listDayStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
+    /**
+     * 获取短链接分组的基础监控数据
+     * @param requestParam
+     * @return
+     */
+    @Select("SELECT date,SUM(pv) as pv,SUM(uv) as uv,SUM(uip) as uip\n" +
+            "FROM t_link_access_stats\n" +
+            "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
+            "AND gid = #{param.gid}\n" +
+            "GROUP BY gid,date")
+    List<ShortLinkStatsAccessDailyRespDTO> groupListDayStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
     /**
      * 获取指定短链接每个小时内的监控数据
@@ -46,6 +57,17 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             "AND full_short_url = #{param.fullShortUrl}\n" +
             "GROUP BY full_short_url,gid,`hour`")
     List<LinkAccessStatsDO> listHourStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+
+    /**
+     * 获取指定短链接每个小时内的监控数据
+     */
+    @Select("SELECT `hour`,SUM(pv) as pv,SUM(uv) as uv,SUM(uip) as ip\n" +
+            "FROM t_link_access_stats\n" +
+            "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
+            "AND gid = #{param.gid}\n" +
+            "GROUP BY gid,`hour`")
+    List<LinkAccessStatsDO> groupListHourStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
     /**
      * 获取指定短链接每周监控数据
@@ -59,6 +81,15 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
     List<LinkAccessStatsDO> listWeekStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
 
+    /**
+     * 分组获取指定短链接每周监控数据
+     */
+    @Select("SELECT weekday,SUM(pv) as pv,SUM(uv) as uv,SUM(uip) as ip\n" +
+            "FROM t_link_access_stats\n" +
+            "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
+            "AND gid = #{param.gid}\n" +
+            "GROUP BY gid,weekday")
+    List<LinkAccessStatsDO> groupListWeekStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
 
 }

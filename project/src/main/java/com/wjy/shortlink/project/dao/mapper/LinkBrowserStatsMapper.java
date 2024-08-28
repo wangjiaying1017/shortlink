@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wjy.shortlink.project.dao.entity.LinkBrowserStatsDO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsBrowserRespDTO;
-import com.wjy.shortlink.project.dto.resp.ShortLinkStatsLocaleCNRespDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -35,4 +34,16 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
             "AND full_short_url = #{param.fullShortUrl}\n" +
             "GROUP BY full_short_url,gid,browser\n")
     List<ShortLinkStatsBrowserRespDTO> shortLinkLocaleStatByBrowser(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+    /**
+     * 分组获取指定链接的浏览器
+     * @param requestParam
+     * @return
+     */
+    @Select("SELECT browser,sum(cnt) as cnt\n" +
+            "FROM t_link_browser_stats\n" +
+            "WHERE date BETWEEN #{param.startDate} AND #{param.endDate}\n" +
+            "AND gid = #{param.gid}\n" +
+            "GROUP BY gid,browser\n")
+    List<ShortLinkStatsBrowserRespDTO> groupShortLinkLocaleStatByBrowser(@Param("param") ShortLinkStatsReqDTO requestParam);
 }

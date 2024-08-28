@@ -19,6 +19,12 @@ public class ShortLinkStatsController {
         return shortLinkRemoteService.shortLinkStats(requestParam);
     }
 
+    @GetMapping("/api/short-link/admin/v1/stats/group")
+    public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkStatsReqDTO requestParam){
+        return shortLinkRemoteService.groupShortLinkStats(requestParam);
+    }
+
+
     @GetMapping("/api/short-link/admin/v1/stats/access-record")
     public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsReqDTO requestParam){
         return shortLinkRemoteService.shortLinkStatsAccessRecord(requestParam);
