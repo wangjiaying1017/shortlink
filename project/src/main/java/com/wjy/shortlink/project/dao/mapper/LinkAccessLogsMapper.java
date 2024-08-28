@@ -7,6 +7,7 @@ package com.wjy.shortlink.project.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wjy.shortlink.project.dao.entity.LinkAccessLogsDO;
 import com.wjy.shortlink.project.dao.entity.LinkAccessStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -54,7 +55,7 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             "ORDER BY " +
             "    count DESC " +
             "LIMIT 5; ")
-    List<HashMap<String, Object>> groupListTopIpByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<HashMap<String, Object>> groupListTopIpByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 
     /**
      * 根据短链接获取指定日期内新旧访客数据
@@ -107,6 +108,31 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             @Param("userAccessLogsList")List<String> userAccessLogsList);
 
 
+    @Select("<script> " +
+            "SELECT " +
+            "    user, " +
+            "    CASE " +
+            "        WHEN MIN(create_time) BETWEEN CONCAT(#{startDate},' 00:00:00') AND CONCAT(#{endDate},' 23:59:59') THEN '新访客' " +
+            "        ELSE '老访客' " +
+            "    END AS uvType " +
+            "FROM " +
+            "    t_link_access_logs " +
+            "WHERE " +
+            "    gid = #{gid} " +
+            "    AND user IN " +
+            "    <foreach item='item' index='index' collection='userAccessLogsList' open='(' separator=',' close=')'> " +
+            "        #{item} " +
+            "    </foreach> " +
+            "GROUP BY " +
+            "    user;" +
+            "    </script>"
+    )
+    List<Map<String,Object>> selectGroupUvTypeByUsers(
+            @Param("gid")String gid,
+            @Param("startDate")String startDate,
+            @Param("endDate")String endDate,
+            @Param("userAccessLogsList")List<String> userAccessLogsList);
+
     /**
      * 根据短链接获取指定日期内PV、UV、UIP数据
      */
@@ -139,7 +165,7 @@ public interface LinkAccessLogsMapper extends BaseMapper<LinkAccessLogsDO> {
             "    AND create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59') " +
             "GROUP BY " +
             "   gid;")
-    LinkAccessStatsDO groupFindPvUvUidStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    LinkAccessStatsDO groupFindPvUvUidStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 
 
 }

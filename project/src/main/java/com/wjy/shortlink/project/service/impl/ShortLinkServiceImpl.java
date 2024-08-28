@@ -90,6 +90,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkStatsTodayMapper linkStatsTodayMapper;
 
 
+    @Value("${short-link.domain.default}")
+    private String createShortLinkDefaultDomain;
     /*
 * 创建短链接
 *
@@ -98,7 +100,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     @Transactional
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
         String suffix = generateSuffix(requestParam);
-        String fullShortUrl = StrBuilder.create(requestParam.getDomain()).append("/").append(suffix).toString();
+        String fullShortUrl = StrBuilder.create(createShortLinkDefaultDomain).append("/").append(suffix).toString();
         ShortLinkDO shortLinkDO = BeanUtil.toBean(requestParam, ShortLinkDO.class);
         shortLinkDO.setShortUri(suffix);
         shortLinkDO.setEnableStatus(0);
@@ -106,6 +108,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         shortLinkDO.setTotalPv(0);
         shortLinkDO.setTotalUv(1);
         shortLinkDO.setTotalUip(0);
+        shortLinkDO.setDomain(createShortLinkDefaultDomain);
         shortLinkDO.setFavicon(getFavicon(requestParam.getOriginUrl()));
         ShortLinkGotoDO linkGotoDO = ShortLinkGotoDO.builder()
                 .fullShortUrl(fullShortUrl)
@@ -228,6 +231,17 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             baseMapper.insert(shortLinkDO);
 
         }
+        //有效期类型和有效期不一样了，删除缓存
+        if(!Objects.equals(hasShortLink.getValidDateType(),requestParam.getValidDateType()) || !Objects.equals(hasShortLink.getValidDate(),requestParam.getValidDate())){
+            stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY,requestParam.getFullShortUrl()));
+            //失效状态变成正常，删除缓存GOTO_IS_NULL_SHORT_LINK_KEY
+            if(hasShortLink.getValidDate()!=null && hasShortLink.getValidDate().before(new Date())){
+                if(Objects.equals(requestParam.getValidDateType(),ValiDateTypeEnum.PERMANET.getType()) ||
+                requestParam.getValidDate().after(new Date())){
+                    stringRedisTemplate.delete(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
+                }
+            }
+        }
     }
 
     /*
@@ -237,8 +251,14 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     @Override
     public void restoreUrl(String shortUri, HttpServletRequest request, HttpServletResponse response) {
         String serverName = request.getServerName();
+        //int serverPort = request.getServerPort();
+        String port = Optional.of(request.getServerPort())
+                .filter(each -> !Objects.equals(each, 80))
+                .map(String::valueOf)
+                .map(each -> ":" + each)
+                .orElse("");
         //serverName没有携带协议
-        String fullShortUrl = serverName+"/"+shortUri;
+        String fullShortUrl = serverName+port+"/"+shortUri;
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
         if(StrUtil.isNotBlank(originalLink)){
             shortLinkStats(fullShortUrl,null,request,response);
@@ -279,7 +299,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .eq(ShortLinkDO::getEnableStatus, 0);
 
             ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-            if(shortLinkDO == null || shortLinkDO.getValidDate().before(new Date())){
+            if(shortLinkDO == null || (shortLinkDO.getValidDate()!=null && shortLinkDO.getValidDate().before(new Date()))){
                 //过了有效期
                 stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY,fullShortUrl),"-",30, TimeUnit.MINUTES);
                 response.sendRedirect("/page/notfound");

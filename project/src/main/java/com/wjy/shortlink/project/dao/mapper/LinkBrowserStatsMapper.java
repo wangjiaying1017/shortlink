@@ -2,6 +2,7 @@ package com.wjy.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wjy.shortlink.project.dao.entity.LinkBrowserStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsBrowserRespDTO;
 import org.apache.ibatis.annotations.Insert;
@@ -45,5 +46,5 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
             "WHERE date BETWEEN #{param.startDate} AND #{param.endDate}\n" +
             "AND gid = #{param.gid}\n" +
             "GROUP BY gid,browser\n")
-    List<ShortLinkStatsBrowserRespDTO> groupShortLinkLocaleStatByBrowser(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<ShortLinkStatsBrowserRespDTO> groupShortLinkLocaleStatByBrowser(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 }

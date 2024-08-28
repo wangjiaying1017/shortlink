@@ -3,7 +3,9 @@ package com.wjy.shortlink.project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.project.common.convention.result.Result;
 import com.wjy.shortlink.project.common.convention.result.Results;
+import com.wjy.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsAccessReqDTO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsRespDTO;
@@ -43,7 +45,15 @@ public class ShortLinkStatsController {
      * @return
      */
     @GetMapping("/api/short-link/v1/stats/group")
-    public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkStatsReqDTO requestParam){
+    public Result<ShortLinkStatsRespDTO> groupShortLinkStats(ShortLinkStatsGroupReqDTO requestParam){
         return Results.success(shortLinkStatsService.groupShortLinkStats(requestParam));
+    }
+
+    /*
+     * 分组短链接访问日志统计
+     * */
+    @GetMapping("/api/short-link/v1/stats/access-record/group")
+    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam){
+        return Results.success(shortLinkStatsService.groupShortLinkStatsAccessRecord(requestParam));
     }
 }

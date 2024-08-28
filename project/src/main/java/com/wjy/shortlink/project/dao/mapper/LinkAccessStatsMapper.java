@@ -1,7 +1,11 @@
 package com.wjy.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wjy.shortlink.project.dao.entity.LinkAccessLogsDO;
 import com.wjy.shortlink.project.dao.entity.LinkAccessStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsAccessDailyRespDTO;
 import org.apache.ibatis.annotations.Insert;
@@ -45,7 +49,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
             "AND gid = #{param.gid}\n" +
             "GROUP BY gid,date")
-    List<ShortLinkStatsAccessDailyRespDTO> groupListDayStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<ShortLinkStatsAccessDailyRespDTO> groupListDayStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 
     /**
      * 获取指定短链接每个小时内的监控数据
@@ -67,7 +71,7 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
             "AND gid = #{param.gid}\n" +
             "GROUP BY gid,`hour`")
-    List<LinkAccessStatsDO> groupListHourStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<LinkAccessStatsDO> groupListHourStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 
     /**
      * 获取指定短链接每周监控数据
@@ -89,7 +93,20 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
             "WHERE create_time BETWEEN CONCAT(#{param.startDate},' 00:00:00') and CONCAT(#{param.endDate},' 23:59:59')\n" +
             "AND gid = #{param.gid}\n" +
             "GROUP BY gid,weekday")
-    List<LinkAccessStatsDO> groupListWeekStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<LinkAccessStatsDO> groupListWeekStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 
+    @Select("SELECT " +
+            "    tlal.* " +
+            "FROM " +
+            "    t_link tl " +
+            "    INNER JOIN t_link_access_logs tlal ON tl.full_short_url = tlal.full_short_url " +
+            "WHERE " +
+            "    tl.gid = #{param.gid} " +
+            "    AND tl.del_flag = '0' " +
+            "    AND tl.enable_status = '0' " +
+            "    AND tlal.create_time BETWEEN #{param.startDate} and #{param.endDate} " +
+            "ORDER BY " +
+            "    tlal.create_time DESC")
+    IPage<LinkAccessLogsDO> selectGroupPage(@Param("param") ShortLinkGroupStatsAccessRecordReqDTO requestParam);
 
 }

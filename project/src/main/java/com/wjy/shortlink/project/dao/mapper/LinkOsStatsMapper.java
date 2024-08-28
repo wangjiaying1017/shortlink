@@ -2,6 +2,7 @@ package com.wjy.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wjy.shortlink.project.dao.entity.LinkOsStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -52,5 +53,5 @@ public interface LinkOsStatsMapper extends BaseMapper<LinkOsStatsDO> {
             "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
             "GROUP BY " +
             "     gid, date, os;")
-    List<HashMap<String, Object>> groupListOsStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<HashMap<String, Object>> groupListOsStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 }

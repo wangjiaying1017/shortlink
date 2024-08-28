@@ -1,6 +1,7 @@
 package com.wjy.shortlink.project.dao.mapper;
 
 import com.wjy.shortlink.project.dao.entity.LinkDeviceStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -50,5 +51,5 @@ public interface LinkDeviceStatsMapper {
             "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
             "GROUP BY " +
             "   gid, device;")
-    List<LinkDeviceStatsDO> groupListDeviceStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+    List<LinkDeviceStatsDO> groupListDeviceStatsByShortLink(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 }

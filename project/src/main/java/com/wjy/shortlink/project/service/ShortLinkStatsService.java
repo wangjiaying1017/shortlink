@@ -1,7 +1,9 @@
 package com.wjy.shortlink.project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.wjy.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsAccessReqDTO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsRespDTO;
@@ -24,5 +26,7 @@ public interface ShortLinkStatsService {
      */
     IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsAccessReqDTO requestParam);
 
-    ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkStatsReqDTO requestParam);
+    ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkStatsGroupReqDTO requestParam);
+
+    IPage<ShortLinkStatsAccessRecordRespDTO> groupShortLinkStatsAccessRecord(ShortLinkGroupStatsAccessRecordReqDTO requestParam);
 }

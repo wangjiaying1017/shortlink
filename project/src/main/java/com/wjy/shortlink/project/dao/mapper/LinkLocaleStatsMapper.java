@@ -2,6 +2,7 @@ package com.wjy.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wjy.shortlink.project.dao.entity.LinkLocaleStatsDO;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsGroupReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsLocaleCNRespDTO;
 import org.apache.ibatis.annotations.Insert;
@@ -47,5 +48,5 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
             "WHERE date BETWEEN #{param.startDate} and #{param.endDate}\n" +
             "AND gid = #{param.gid}\n" +
             "GROUP BY gid,province\n")
-    List<ShortLinkStatsLocaleCNRespDTO> groupShortLinkLocaleStatByProvince(@Param("param")ShortLinkStatsReqDTO requestParam);
+    List<ShortLinkStatsLocaleCNRespDTO> groupShortLinkLocaleStatByProvince(@Param("param") ShortLinkStatsGroupReqDTO requestParam);
 }
