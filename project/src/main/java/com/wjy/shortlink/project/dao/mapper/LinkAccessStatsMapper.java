@@ -59,4 +59,6 @@ public interface LinkAccessStatsMapper extends BaseMapper<LinkAccessStatsDO> {
     List<LinkAccessStatsDO> listWeekStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
 
+
+
 }

@@ -3,6 +3,7 @@ package com.wjy.shortlink.project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wjy.shortlink.project.common.convention.result.Result;
 import com.wjy.shortlink.project.common.convention.result.Results;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsAccessReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsAccessRecordRespDTO;
 import com.wjy.shortlink.project.dto.resp.ShortLinkStatsRespDTO;
@@ -27,7 +28,7 @@ public class ShortLinkStatsController {
     }
 
     @GetMapping("/api/short-link/v1/stats/access-record")
-    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsReqDTO requestParam){
+    public Result<IPage<ShortLinkStatsAccessRecordRespDTO>> shortLinkStatsAccessRecord(ShortLinkStatsAccessReqDTO requestParam){
         return Results.success(shortLinkStatsService.shortLinkStatsAccessRecord(requestParam));
     }
 }

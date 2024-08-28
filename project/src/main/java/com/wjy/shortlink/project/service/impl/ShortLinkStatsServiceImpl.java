@@ -2,6 +2,7 @@ package com.wjy.shortlink.project.service.impl;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -11,6 +12,7 @@ import com.wjy.shortlink.project.dao.entity.LinkAccessStatsDO;
 import com.wjy.shortlink.project.dao.entity.LinkDeviceStatsDO;
 import com.wjy.shortlink.project.dao.entity.LinkNetworkStatsDO;
 import com.wjy.shortlink.project.dao.mapper.*;
+import com.wjy.shortlink.project.dto.req.ShortLinkStatsAccessReqDTO;
 import com.wjy.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import com.wjy.shortlink.project.dto.resp.*;
 import com.wjy.shortlink.project.service.ShortLinkStatsService;
@@ -43,8 +45,14 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
 
     @Override
     public ShortLinkStatsRespDTO oneShortLinkStats(ShortLinkStatsReqDTO requestParam) {
-        //基础访问详情
+        //PageHelper.clearPage();
         List<ShortLinkStatsAccessDailyRespDTO> linkAccessStatsDOS = linkAccessStatsMapper.listDayStatsByShortLink(requestParam);
+        if(CollUtil.isEmpty(linkAccessStatsDOS)){
+            return null;
+        }
+        //基础访问详情
+        LinkAccessStatsDO pvUvUidStatsByShortLink = linkAccessLogsMapper.findPvUvUidStatsByShortLink(requestParam);
+
         //地区访问详情
         List<ShortLinkStatsLocaleCNRespDTO> shortLinkStatsLocaleCNRespDTOS = linkLocaleStatsMapper.shortLinkLocaleStatByProvince(requestParam);
         int localCntSum = shortLinkStatsLocaleCNRespDTOS.stream()
@@ -176,6 +184,9 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
         });
 
         return ShortLinkStatsRespDTO.builder()
+                .pv(pvUvUidStatsByShortLink.getPv())
+                .uv(pvUvUidStatsByShortLink.getUv())
+                .uip(pvUvUidStatsByShortLink.getUip())
                 .browserStats(shortLinkStatsBrowserRespDTOS)
                 .localeCnStats(shortLinkStatsLocaleCNRespDTOS)
                 .topIpStats(shortLinkStatsTopIpRespDTOList)
@@ -199,13 +210,14 @@ public class ShortLinkStatsServiceImpl implements ShortLinkStatsService {
      * @return
      */
     @Override
-    public IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsReqDTO requestParam) {
+    public IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(ShortLinkStatsAccessReqDTO requestParam) {
         LambdaQueryWrapper<LinkAccessLogsDO> queryWrapper = Wrappers.lambdaQuery(LinkAccessLogsDO.class)
                 .eq(LinkAccessLogsDO::getGid,requestParam.getGid())
                 .eq(LinkAccessLogsDO::getFullShortUrl,requestParam.getFullShortUrl())
                 .between(LinkAccessLogsDO::getCreateTime,requestParam.getStartDate(),requestParam.getEndDate())
                 .eq(LinkAccessLogsDO::getDelFlag,0)
                 .orderByDesc(LinkAccessLogsDO::getCreateTime);
+
         Page<LinkAccessLogsDO> page = new Page((int) requestParam.getCurrent(), (int) requestParam.getSize());
         Page<LinkAccessLogsDO> linkAccessLogsDOPage = linkAccessLogsMapper.selectPage(page, queryWrapper);
         IPage<ShortLinkStatsAccessRecordRespDTO> actualResult = linkAccessLogsDOPage.convert(each -> BeanUtil.toBean(each, ShortLinkStatsAccessRecordRespDTO.class));
